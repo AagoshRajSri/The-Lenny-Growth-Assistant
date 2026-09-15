@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: backend
+Version: 0.1.0
+Summary: FastAPI backend for Lenny Growth Assistant
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.100.0
+Requires-Dist: uvicorn>=0.23.0
+Requires-Dist: sqlalchemy>=2.0.0
+Requires-Dist: alembic>=1.12.0
+Requires-Dist: pgvector>=0.2.0
+Requires-Dist: psycopg2-binary>=2.9.0
+Requires-Dist: sentence-transformers>=2.0.0
+Requires-Dist: tiktoken>=0.5.0
+Requires-Dist: feedparser>=6.0.0
+Requires-Dist: beautifulsoup4>=4.12.0

@@ -1,3 +1,293 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* ============================================================
+   LENNY GROWTH ASSISTANT — DESIGN TOKEN SYSTEM
+   Palette role: deep-slate + steel-blue intelligence tool.
+   Anti-patterns avoided: no warm-cream/terracotta, no neon.
+   ============================================================ */
+
+@theme {
+  /* ── Palette ─────────────────────────────────────────── */
+
+  /* Background layers */
+  --color-bg:            #0d1117;   /* near-black, GitHub-dark inspired   */
+  --color-surface:       #161b22;   /* card / panel surface               */
+  --color-surface-hover: #1c2330;   /* subtle lift on hover               */
+  --color-surface-raised:#1f2937;   /* modals / popovers                  */
+
+  /* Borders & dividers */
+  --color-border:        #30363d;   /* consistent edge definition         */
+  --color-border-focus:  #4a9eff;   /* keyboard-focus ring                */
+
+  /* Typography */
+  --color-text-primary:  #e6edf3;   /* primary readable copy              */
+  --color-text-muted:    #8b949e;   /* secondary / metadata               */
+  --color-text-disabled: #484f58;   /* placeholders, disabled states      */
+
+  /* Primary accent — steel-blue (WCAG AA against bg) */
+  --color-accent:        #4a9eff;   /* interactive blue                   */
+  --color-accent-hover:  #6ab0ff;   /* hover / active boost               */
+  --color-accent-subtle: #1a3a5c;   /* tinted bg for selected items       */
+
+  /* Semantic states */
+  --color-success:       #3fb950;
+  --color-warning:       #d29922;
+  --color-error:         #f85149;
+
+  /* ── Typography ─────────────────────────────────────── */
+
+  /* UI copy — clean geometric sans */
+  --font-sans:   'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Code / metadata — strict monospace only for technical content */
+  --font-mono:   'JetBrains Mono', 'Fira Code', ui-monospace, 'Cascadia Code',
+                 'Roboto Mono', monospace;
+
+  /* Scale */
+  --text-xs:   0.70rem;   /* 11.2px — chunk IDs, model tags   */
+  --text-sm:   0.812rem;  /* 13px   — metadata, timestamps    */
+  --text-base: 0.9375rem; /* 15px   — body chat copy          */
+  --text-lg:   1.0625rem; /* 17px   — panel headings          */
+  --text-xl:   1.25rem;   /* 20px   — section titles          */
+  --text-2xl:  1.5rem;    /* 24px   — page-level headings     */
+
+  --leading-tight:  1.25;
+  --leading-normal: 1.6;
+  --leading-code:   1.75;  /* extra room inside code blocks    */
+
+  /* ── Spacing ─────────────────────────────────────────── */
+  --spacing-px:   1px;
+  --spacing-0-5:  0.125rem;
+  --spacing-1:    0.25rem;
+  --spacing-2:    0.5rem;
+  --spacing-3:    0.75rem;
+  --spacing-4:    1rem;
+  --spacing-6:    1.5rem;
+  --spacing-8:    2rem;
+  --spacing-10:   2.5rem;
+  --spacing-12:   3rem;
+  --spacing-16:   4rem;
+
+  /* ── Border radii ────────────────────────────────────── */
+  --radius-sm:   0.25rem;   /* tags, chips                  */
+  --radius-md:   0.5rem;    /* cards, inputs                */
+  --radius-lg:   0.75rem;   /* panels, dialogs              */
+  --radius-xl:   1rem;      /* large cards                  */
+  --radius-full: 9999px;    /* pill badges, avatars         */
+
+  /* ── Elevation / shadows ─────────────────────────────── */
+  /* Low-elevation — no dramatic drop shadows (technical, not marketing) */
+  --shadow-sm:  0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-md:  0 2px 8px 0 rgb(0 0 0 / 0.5);
+  --shadow-focus: 0 0 0 3px rgb(74 158 255 / 0.35);
+
+  /* ── Motion ──────────────────────────────────────────── */
+  --duration-fast:   100ms;
+  --duration-normal: 200ms;
+  --ease-default:    cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Focus Management ─────────────────────────────────────── */
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+/* Hide browser default focus ring for mouse users only */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-disabled); }
+
+/* ── Typography defaults ──────────────────────────────────── */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+p { margin: 0; }
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-default);
+}
+a:hover { color: var(--color-accent-hover); }
+
+/* ── Code & monospace: STRICTLY scoped ───────────────────── */
+
+code, pre, kbd, samp,
+.chunk-id, .model-tag, .source-meta {
+  font-family: var(--font-mono) !important;
+  font-size: var(--text-sm);
+}
+
+pre {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  overflow-x: auto;
+  line-height: var(--leading-code);
+  margin: 0;
+}
+
+code:not(pre code) {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.15em 0.4em;
+  font-size: 0.875em;
+}
+
+/* ── Surface / Card tokens ────────────────────────────────── */
+
+.surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.surface-raised {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Interactive states ───────────────────────────────────── */
+
+.interactive {
+  transition:
+    background-color var(--duration-fast) var(--ease-default),
+    border-color var(--duration-fast) var(--ease-default),
+    box-shadow var(--duration-fast) var(--ease-default);
+}
+
+.interactive:hover {
+  background-color: var(--color-surface-hover);
+}
+
+/* ── Accent button ────────────────────────────────────────── */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4);
+  background: var(--color-accent);
+  color: #0d1117;               /* dark text on light-ish blue for contrast */
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-default);
+}
+
+.btn-primary:hover { background: var(--color-accent-hover); }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-default),
+    border-color var(--duration-fast) var(--ease-default);
+}
+
+.btn-secondary:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-text-muted);
+}
+
+/* ── Input ────────────────────────────────────────────────── */
+
+.input {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  padding: var(--spacing-3) var(--spacing-4);
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease-default),
+              box-shadow var(--duration-fast) var(--ease-default);
+}
+
+.input::placeholder { color: var(--color-text-disabled); }
+.input:focus { border-color: var(--color-accent); box-shadow: var(--shadow-focus); }
+
+/* ── Semantic state chips ─────────────────────────────────── */
+
+.badge-success { background: rgb(63 185 80 / 0.15); color: var(--color-success); }
+.badge-warning { background: rgb(210 153 34 / 0.15); color: var(--color-warning); }
+.badge-error   { background: rgb(248 81 73 / 0.15);  color: var(--color-error);   }
+.badge-info    { background: var(--color-accent-subtle); color: var(--color-accent); }
+
+.badge-success, .badge-warning, .badge-error, .badge-info {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 0.15em 0.5em;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
