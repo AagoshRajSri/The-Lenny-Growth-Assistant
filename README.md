@@ -1,5 +1,7 @@
 # The Lenny Growth Assistant
 
+![Status: Complete](https://img.shields.io/badge/Status-Complete-success?style=flat-square)
+
 A full-stack RAG (Retrieval-Augmented Generation) application designed for growth engineering, product strategy, and marketing insights. It answers user questions strictly based on knowledge retrieved from Lenny's Podcast and Newsletter transcripts, providing inline citations and dynamic artifacts.
 
 ## Features
