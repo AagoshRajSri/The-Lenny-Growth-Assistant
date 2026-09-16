@@ -16,6 +16,13 @@ import logging
 import asyncio
 
 import httpx
+from dotenv import load_dotenv
+
+# Load root and local .env files
+_root_env = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+if os.path.exists(_root_env):
+    load_dotenv(_root_env)
+load_dotenv()
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sse_starlette.sse import EventSourceResponse
@@ -87,7 +94,7 @@ def read_root():
 @app.get("/api/config", response_model=ConfigResponse)
 def get_config():
     return ConfigResponse(
-        llm_provider=os.environ.get("LLM_PROVIDER", "anthropic").lower(),
+        llm_provider=os.environ.get("LLM_PROVIDER", "groq").lower(),
         ollama_model=os.environ.get("OLLAMA_MODEL", "llama3.2:3b"),
         ollama_base_url=os.environ.get("OLLAMA_BASE_URL", "http://host.docker.internal:11434"),
     )
@@ -110,7 +117,7 @@ async def health_check():
     except Exception:
         db_status = "unavailable"
 
-    provider = _os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    provider = _os.environ.get("LLM_PROVIDER", "groq").lower()
     ollama_base = _os.environ.get("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
     ollama_status = "not_configured"
 
@@ -271,7 +278,7 @@ async def chat(session_id: int, body: ChatRequest, request: Request):
                 extra={
                     "request_id": request_id,
                     "session_id": session_id,
-                    "provider": os.environ.get("LLM_PROVIDER", "anthropic"),
+                    "provider": os.environ.get("LLM_PROVIDER", "groq"),
                     "latency_ms": latency_ms,
                     "retrieval_hits": retrieval_hits,
                 },

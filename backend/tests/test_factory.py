@@ -19,24 +19,24 @@ def test_factory_returns_ollama(monkeypatch):
     assert isinstance(provider, OllamaProvider)
 
 
-def test_factory_returns_anthropic_by_default(monkeypatch):
-    monkeypatch.setenv("LLM_PROVIDER", "anthropic")
+def test_factory_returns_groq_by_default(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "groq")
     import importlib
     import app.agent.factory as fmod
     importlib.reload(fmod)
     provider = fmod.get_provider()
-    from app.agent.anthropic import AnthropicAgentProvider
-    assert isinstance(provider, AnthropicAgentProvider)
+    from app.agent.groq_provider import GroqProvider
+    assert isinstance(provider, GroqProvider)
 
 
-def test_factory_fallback_to_anthropic_on_empty(monkeypatch):
+def test_factory_fallback_to_groq_on_empty(monkeypatch):
     monkeypatch.delenv("LLM_PROVIDER", raising=False)
     import importlib
     import app.agent.factory as fmod
     importlib.reload(fmod)
     provider = fmod.get_provider()
-    from app.agent.anthropic import AnthropicAgentProvider
-    assert isinstance(provider, AnthropicAgentProvider)
+    from app.agent.groq_provider import GroqProvider
+    assert isinstance(provider, GroqProvider)
 
 
 def test_factory_case_insensitive(monkeypatch):

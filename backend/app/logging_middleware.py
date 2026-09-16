@@ -51,7 +51,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         latency_ms = round((time.perf_counter() - start) * 1000, 2)
 
         import os
-        provider = os.environ.get("LLM_PROVIDER", "anthropic")
+        provider = os.environ.get("LLM_PROVIDER", "groq")
 
         # session_id extracted from path if present, e.g. /api/sessions/42/...
         session_id = None

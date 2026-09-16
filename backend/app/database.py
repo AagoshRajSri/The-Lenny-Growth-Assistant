@@ -6,6 +6,13 @@ import logging
 import httpx
 from typing import Optional
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+
+# Load root and local .env files
+_root_env = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
+if os.path.exists(_root_env):
+    load_dotenv(_root_env)
+load_dotenv()
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session as DBSession

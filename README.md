@@ -7,7 +7,7 @@ A full-stack RAG (Retrieval-Augmented Generation) application designed for growt
 ## Features
 
 - **Strict Source Grounding:** Refuses to hallucinate outside the retrieved transcript corpus.
-- **Dual LLM Provider:** Seamlessly switch between Anthropic (Claude) and a local Ollama instance with zero code changes.
+- **Dual LLM Provider:** Seamlessly switch between Groq (Llama-3.3) and a local Ollama instance with zero code changes.
 - **Sandboxed Artifact Viewer:** Renders generated Markdown and HTML content safely in an isolated iframe.
 - **Server-Sent Events (SSE):** Provides a smooth, token-by-token streaming chat interface.
 - **Robust Resilience:** Handles LLM timeouts and database disconnects gracefully without crashing.
@@ -19,7 +19,7 @@ A full-stack RAG (Retrieval-Augmented Generation) application designed for growt
 
 - **Backend:** FastAPI (Python), SQLAlchemy, PostgreSQL with `pgvector`, and `bleach` for XSS sanitization.
 - **Frontend:** React (TypeScript), Vite, Tailwind CSS (v4) utilizing strict CSS design tokens.
-- **AI/LLM:** Integrates the `claude_agent_sdk` for Anthropic and direct HTTP stream processing for Ollama.
+- **AI/LLM:** Integrates the official `groq` python client and direct HTTP stream processing for Ollama.
 
 *See [`docs/architecture.md`](docs/architecture.md) for deeper backend flow designs and [`docs/design.md`](docs/design.md) for frontend visual tokens.*
 
@@ -30,7 +30,7 @@ A full-stack RAG (Retrieval-Augmented Generation) application designed for growt
 - **Docker & Docker Compose** (for PostgreSQL/pgvector and Ollama, if running locally).
 - **Python 3.10+** (tested on 3.14).
 - **Node.js 18+** & **npm**.
-- An Anthropic API Key (if using Claude).
+- A Groq API Key (if using Groq Cloud API).
 
 ---
 
@@ -69,11 +69,12 @@ Copy `.env.example` to `.env` in the root directory:
 # Database
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/lenny_db
 
-# LLM Provider Configuration ('anthropic' or 'ollama')
-LLM_PROVIDER=anthropic
+# LLM Provider Configuration ('groq' or 'ollama')
+LLM_PROVIDER=groq
 
-# Anthropic 
-ANTHROPIC_API_KEY=sk-ant-xxx
+# Groq 
+GROQ_API_KEY=gsk_xxx
+GROQ_MODEL=llama-3.3-70b-versatile
 
 # Ollama 
 OLLAMA_BASE_URL=http://host.docker.internal:11434
@@ -137,4 +138,4 @@ Manual testing procedures (UI states, resilience degradation, etc.) are document
 | **Port Conflicts** | The backend runs on `8000`, PostgreSQL on `5432`, and Vite on `5173`. Ensure these ports are free. |
 | **Empty Responses (Out of Corpus)** | If the assistant always responds "I'm sorry, the transcripts don't cover this topic", ensure you have run the ingestion script (`python ingest.py`) and verified chunks in your database. |
 | **Dropped DB Connection** | If PostgreSQL restarts, the backend will auto-retry the query once. If it remains down, you'll receive a `503 Service Unavailable` error bar in the UI. Restart the `docker-compose` stack. |
-| **Missing API Keys** | If using Anthropic without a valid `ANTHROPIC_API_KEY`, the stream will yield an Auth Error. Check your `.env` file. |
+| **Missing API Keys** | If using Groq without a valid `GROQ_API_KEY`, the stream will yield an Auth Error. Check your `.env` file. |

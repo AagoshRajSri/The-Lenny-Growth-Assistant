@@ -10,13 +10,17 @@ if backend_dir not in sys.path:
 
 from models import Chunk, Transcript, Artifact
 from sentence_transformers import SentenceTransformer
-from claude_agent_sdk import create_sdk_mcp_server, tool
+from app.database import SessionLocal, engine
 
-DB_URL = os.environ.get("DATABASE_URL", "postgresql://user:password@localhost:5432/dbname")
-engine = create_engine(DB_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Simple tool decorator for tool definition without Anthropic/Claude SDK
+def tool(*args, **kwargs):
+    def decorator(fn):
+        return fn
+    if len(args) == 1 and callable(args[0]):
+        return args[0]
+    return decorator
 
-mcp_server = create_sdk_mcp_server("lenny_agent")
+mcp_server = None
 
 def search_transcripts_core(query: str, k: int = 5) -> str:
     embed_model = SentenceTransformer('all-MiniLM-L6-v2')

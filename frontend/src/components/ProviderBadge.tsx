@@ -25,7 +25,7 @@ export function ProviderBadge({ config }: ProviderBadgeProps) {
   const isOllama = config.llm_provider === 'ollama'
   const label = isOllama
     ? `ollama · ${config.ollama_model}`
-    : 'anthropic · claude'
+    : 'groq · llama-3.3-70b'
 
   return (
     <span
@@ -40,10 +40,10 @@ export function ProviderBadge({ config }: ProviderBadgeProps) {
         padding: '2px 8px',
         border: '1px solid var(--color-border)',
         borderRadius: 'var(--radius-full)',
-        color: isOllama ? 'var(--color-success)' : 'var(--color-accent)',
+        color: isOllama ? 'var(--color-success)' : '#fb923c',
         background: isOllama
           ? 'rgb(63 185 80 / 0.10)'
-          : 'var(--color-accent-subtle)',
+          : 'rgb(251 146 60 / 0.10)',
       }}
     >
       <span
@@ -51,7 +51,7 @@ export function ProviderBadge({ config }: ProviderBadgeProps) {
           width: 6,
           height: 6,
           borderRadius: '50%',
-          background: isOllama ? 'var(--color-success)' : 'var(--color-accent)',
+          background: isOllama ? 'var(--color-success)' : '#fb923c',
           flexShrink: 0,
         }}
       />

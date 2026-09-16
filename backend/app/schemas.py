@@ -9,8 +9,8 @@ from pydantic import BaseModel, Field
 # ─── Requests ───────────────────────────────────────────────────────────────
 
 class CreateSessionRequest(BaseModel):
-    title: Optional[str] = Field(None, description="Optional session title")
-    model_provider: Optional[str] = Field("anthropic", description="LLM provider to use")
+    title: Optional[str] = Field(None, description="Optional title for the session")
+    model_provider: Optional[str] = Field("groq", description="LLM provider to use")
 
 
 class ChatRequest(BaseModel):

@@ -16,7 +16,7 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture
 def client(monkeypatch):
-    monkeypatch.setenv("LLM_PROVIDER", "ollama")
+    monkeypatch.setenv("LLM_PROVIDER", "groq")
     monkeypatch.setenv("DATABASE_URL", "postgresql://user:pass@localhost:5432/testdb")
     from main import app
     return TestClient(app, raise_server_exceptions=False)
@@ -51,7 +51,7 @@ def test_config_returns_provider(client):
     resp = client.get("/api/config")
     assert resp.status_code == 200
     body = resp.json()
-    assert body["llm_provider"] == "ollama"
+    assert body["llm_provider"] == "groq"
     assert "ollama_model" in body
     assert "ollama_base_url" in body
 
@@ -59,12 +59,13 @@ def test_config_returns_provider(client):
 # ─── /api/sessions ───────────────────────────────────────────────────────────
 
 def test_create_session_success(client):
+    """Should return 201 with properly structured JSON."""
     with patch("main.SessionLocal") as mock_sl:
         import datetime
         mock_session_obj = MagicMock()
         mock_session_obj.id = 42
-        mock_session_obj.title = "Test"
-        mock_session_obj.model_provider = "ollama"
+        mock_session_obj.title = "Strategy 2026"
+        mock_session_obj.model_provider = "groq"
         mock_session_obj.created_at = datetime.datetime(2026, 1, 1, 0, 0, 0)
 
         mock_db = MagicMock()
@@ -72,12 +73,17 @@ def test_create_session_success(client):
         mock_db.commit = MagicMock()
         mock_db.refresh = lambda s: None
         mock_sl.return_value = mock_db
-
-        # Patch the Session model constructor
+        
         with patch("main.DBSession", return_value=mock_session_obj):
-            resp = client.post("/api/sessions", json={"title": "Test"})
-
-    assert resp.status_code in (201, 503)
+            resp = client.post("/api/sessions", json={
+                "title": "Strategy 2026",
+                "model_provider": "groq"
+            })
+            
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["title"] == "Strategy 2026"
+    assert data["model_provider"] == "groq"
 
 
 def test_create_session_missing_body(client):
@@ -87,8 +93,7 @@ def test_create_session_missing_body(client):
         mock_session_obj = MagicMock()
         mock_session_obj.id = 42
         mock_session_obj.title = None
-        mock_session_obj.model_provider = "anthropic"
-        mock_session_obj.created_at = datetime.datetime(2026, 1, 1, 0, 0, 0)
+        mock_session_obj.model_provider = "groq"
         
         mock_db = MagicMock()
         mock_db.add = MagicMock()

@@ -14,6 +14,14 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+from dotenv import load_dotenv
+
+# Load root and local .env files
+_root_env = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
+if os.path.exists(_root_env):
+    load_dotenv(_root_env)
+load_dotenv()
+
 db_url = os.getenv("DATABASE_URL")
 if db_url:
     config.set_main_option("sqlalchemy.url", db_url)
