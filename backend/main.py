@@ -46,11 +46,22 @@ logger = logging.getLogger("api")
 
 # ─── App ────────────────────────────────────────────────────────────────────
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(
     title="Lenny Growth Assistant API",
     version="0.1.0",
     docs_url="/docs",
     redoc_url=None,
+)
+
+# Allow CORS for local development
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.add_middleware(LoggingMiddleware)
@@ -163,6 +174,30 @@ def create_session(body: CreateSessionRequest):
         finally:
             db.close()
     return with_db_retry(_do_create)
+
+
+@app.get("/api/sessions", response_model=list[SessionResponse])
+def get_sessions():
+    def _do_get():
+        db = SessionLocal()
+        try:
+            sessions = (
+                db.query(DBSession)
+                .order_by(DBSession.created_at.desc())
+                .all()
+            )
+            return [
+                SessionResponse(
+                    id=s.id,
+                    title=s.title,
+                    model_provider=s.model_provider,
+                    created_at=s.created_at,
+                )
+                for s in sessions
+            ]
+        finally:
+            db.close()
+    return with_db_retry(_do_get)
 
 
 @app.get("/api/sessions/{session_id}/messages", response_model=list[MessageResponse])

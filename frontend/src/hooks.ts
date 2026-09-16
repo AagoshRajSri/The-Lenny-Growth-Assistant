@@ -22,20 +22,20 @@ export function useSessions() {
   const [sessions, setSessions] = useState<Session[]>([])
 
   const refresh = useCallback(() => {
-    // Sessions are stored locally for now; replace with API listing when available.
-    const raw = localStorage.getItem('sessions')
-    if (raw) setSessions(JSON.parse(raw))
+    fetch(`${API}/api/sessions`)
+      .then(r => r.json())
+      .then((data: Session[]) => {
+        // Fix naive UTC dates from backend by appending 'Z'
+        const fixed = data.map(s => ({
+          ...s,
+          created_at: s.created_at.endsWith('Z') ? s.created_at : s.created_at + 'Z'
+        }))
+        setSessions(fixed)
+      })
+      .catch(() => setSessions([]))
   }, [])
 
   useEffect(() => { refresh() }, [refresh])
-
-  const addSession = useCallback((s: Session) => {
-    setSessions(prev => {
-      const next = [s, ...prev]
-      localStorage.setItem('sessions', JSON.stringify(next))
-      return next
-    })
-  }, [])
 
   const createSession = useCallback(async (title?: string): Promise<Session> => {
     const res = await fetch(`${API}/api/sessions`, {
@@ -45,9 +45,10 @@ export function useSessions() {
     })
     if (!res.ok) throw new Error(`Failed to create session: ${res.status}`)
     const session: Session = await res.json()
-    addSession(session)
+    session.created_at = session.created_at.endsWith('Z') ? session.created_at : session.created_at + 'Z'
+    setSessions(prev => [session, ...prev])
     return session
-  }, [addSession])
+  }, [])
 
   return { sessions, createSession, refresh }
 }
@@ -122,18 +123,25 @@ export function useChat(sessionId: number | null) {
           if (line.startsWith('event: done')) continue
           if (!line.startsWith('data: ')) continue
 
-          const data = line.slice(6)
+          const data = line.slice(6).replace(/\r$/, '')
 
-          // Check for structured error
+          if (data === '[DONE]') continue
+
+          // Try parsing as JSON to detect structured payloads (errors/done events)
+          let parsed = null
           try {
-            const parsed = JSON.parse(data)
-            if (parsed?.error) {
+            parsed = JSON.parse(data)
+          } catch {
+            // Not valid JSON, which means it's a plain token from Groq/Ollama
+          }
+
+          if (parsed && typeof parsed === 'object') {
+            if (parsed.error) {
               setError(parsed.error?.message ?? 'Provider error')
               updateAssistant({ streaming: false, content: '' })
               setStreaming(false)
               return
             }
-            // done event payload
             if ('citations' in parsed) {
               citations = parsed.citations ?? []
               const artifactId: number | null = parsed.artifact_id ?? null
@@ -141,8 +149,11 @@ export function useChat(sessionId: number | null) {
               if (artifactId) onArtifact(artifactId)
               break
             }
-          } catch {
-            // plain token text — accumulate directly
+          }
+
+          if (!parsed || typeof parsed !== 'object') {
+            // It's a plain token (or a token that happened to parse to a primitive like a number/string)
+            // Accumulate directly
             setMessages(prev =>
               prev.map(m =>
                 m.id === assistantMsg.id

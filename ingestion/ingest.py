@@ -12,6 +12,12 @@ sys.path.append(backend_dir)
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from dotenv import load_dotenv
+_root_env = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+if os.path.exists(_root_env):
+    load_dotenv(_root_env)
+
 from models import Transcript, Chunk
 import tiktoken
 from sentence_transformers import SentenceTransformer
