@@ -3,25 +3,6 @@
 ## User & problem
 Growth PMs and operators at product-led companies need a fast, source-grounded research tool for Lenny's Podcast / Newsletter corpus — not a generic chatbot. They come in during focused work sessions: writing strategy docs, preparing for planning cycles, validating growth bets. They need answers they can trust and cite, delivered in an interface that feels like a professional productivity tool rather than a marketing demo.
 
-## Success metric
-[Placeholder]
-
-## Assumptions
-[Placeholder]
-
-## Scope choices
-[Placeholder]
-
-## Risks & trade-offs
-[Placeholder]
-
-## Flows
-[Placeholder]
-
-## Acceptance criteria
-[Placeholder]
-
----
 
 ## Design Tokens & System
 

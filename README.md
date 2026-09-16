@@ -129,6 +129,10 @@ Manual testing procedures (UI states, resilience degradation, etc.) are document
 
 ## Troubleshooting
 
-- **Ollama Unreachable:** Ensure your Docker setup can reach the host (`host.docker.internal`). If running Ollama natively, change `OLLAMA_BASE_URL` to `http://localhost:11434`.
-- **Port Conflicts:** The backend runs on `8000`, PostgreSQL on `5432`, and Vite on `5173`. Ensure these ports are free.
-- **Empty Responses:** If the assistant always responds "I'm sorry, the transcripts don't cover this topic", ensure you have run the ingestion script (`python ingest.py`) and verified chunks in your database.
+| Issue / Failure Mode | Cause / Mitigation |
+|----------------------|-------------------|
+| **Ollama Unreachable** | Ensure your Docker setup can reach the host (`host.docker.internal`). If running Ollama natively, change `OLLAMA_BASE_URL` to `http://localhost:11434`. The backend will gracefully return a JSON error instead of crashing. |
+| **Port Conflicts** | The backend runs on `8000`, PostgreSQL on `5432`, and Vite on `5173`. Ensure these ports are free. |
+| **Empty Responses (Out of Corpus)** | If the assistant always responds "I'm sorry, the transcripts don't cover this topic", ensure you have run the ingestion script (`python ingest.py`) and verified chunks in your database. |
+| **Dropped DB Connection** | If PostgreSQL restarts, the backend will auto-retry the query once. If it remains down, you'll receive a `503 Service Unavailable` error bar in the UI. Restart the `docker-compose` stack. |
+| **Missing API Keys** | If using Anthropic without a valid `ANTHROPIC_API_KEY`, the stream will yield an Auth Error. Check your `.env` file. |

@@ -1,34 +1,47 @@
 # Architecture
 
-## User & problem
-[Placeholder]
+## Overview
+The Lenny Growth Assistant is a full-stack Retrieval-Augmented Generation (RAG) application. It separates concerns across a React/Vite frontend, a FastAPI Python backend, and a PostgreSQL vector database.
 
-## Success metric
-[Placeholder]
+## Finalized Schema
+The database uses PostgreSQL with the `pgvector` extension.
+- **`sessions`**: Tracks chat sessions (`id`, `title`, `model_provider`, `created_at`).
+- **`messages`**: Tracks conversation history (`id`, `session_id`, `role`, `content`, `citations`).
+- **`transcripts`**: Stores podcast/newsletter metadata (`id`, `episode_title`, `episode_url`).
+- **`chunks`**: Stores embedded knowledge. Includes a `pgvector` column: `embedding = mapped_column(Vector(384))`. The 384 dimension matches the `all-MiniLM-L6-v2` encoder.
+- **`artifacts`**: Stores generated documents (`id`, `session_id`, `type`, `raw_content`, `sanitized_content`).
 
-## Assumptions
-[Placeholder]
+## API Contracts
+The backend exposes a strictly typed REST and SSE interface:
+- `POST /api/sessions` -> Creates a session.
+- `GET /api/sessions/{id}/messages` -> Fetches chat history.
+- `POST /api/sessions/{id}/chat` -> Accepts `{ message: str }`, returns a Server-Sent Events (SSE) stream of tokens, ending with a `[DONE]` event containing metadata.
+- `GET /api/artifacts/{id}` -> Returns sanitized HTML/Markdown. Crucially, `raw_content` is never exposed.
+- `GET /healthz` -> Reports component health (`db`, `ollama_status`).
+- **Error Handling:** All errors are wrapped in a standard JSON envelope: `{"error": {"code": 404, "message": "Not found"}}`.
 
-## Scope choices
-- **Transcripts Data Source:** Since full transcripts are not strictly publicly available in the RSS feed by default, we use the RSS feed's `<description>`/`<content:encoded>` element as a proxy for the text content.
-- **Chunking Strategy:** We chunk text into windows of 600 tokens with a 15% overlap using `tiktoken` (cl100k_base). 
-- **Embeddings:** We use `sentence-transformers/all-MiniLM-L6-v2`. Given this model has a native limit (typically 256 or 512 tokens), it will truncate chunks longer than its limit. This trade-off is accepted for simplicity.
+## Component Boundaries
+- **Frontend:** Purely presentational. Handles SSE parsing and Markdown/HTML rendering.
+- **Backend Core:** FastAPI routers, Pydantic validation, and dependency injection (DB sessions).
+- **Agent Layer (`app/agent/`)**: Encapsulates LLM interactions. Exposes a unified `respond()` generator interface.
+- **Tools (`app/agent/tools.py`)**: Stateless Python functions for DB retrieval and artifact persistence.
 
-## Security Model
-- **Artifact Sanitization:** To prevent Cross-Site Scripting (XSS), agent-generated HTML artifacts undergo strict server-side sanitization via `bleach` before persistence.
-  - **Allowed:** Basic semantic HTML (e.g., `h1`-`h6`, `p`, `span`, `div`, `ul`, `ol`, `li`, `a`, `img`, `code`).
-  - **Blocked:** Explicit blocking of `<script>`, `<iframe>`, `<object>`, `<embed>`, inline event handlers (like `onerror`), and `javascript:` URIs.
-  - **Serving:** The API (`/api/artifacts/{id}`) exclusively returns `sanitized_content`. The raw content is kept for auditing and re-processing but never served directly to frontend clients.
+## Agent SDK vs. Ollama Architectural Asymmetry
+To provide flexibility, the system supports two fundamentally different provider patterns behind a unified interface (`ProviderFactory`):
+1. **Anthropic (Claude):** Uses the `claude_agent_sdk` MCP (Model Context Protocol) server. The SDK inherently manages tool calling (e.g., `search_transcripts`, `render_artifact`) and conversation history looping automatically.
+2. **Ollama:** Implemented as a raw HTTP client using `httpx`. Because Ollama lacks robust native tool-calling, we use a *Pre-retrieval pattern*: The backend explicitly runs `search_transcripts_core` *before* hitting Ollama, injecting the retrieved context directly into the system prompt.
 
-## Risks & trade-offs
-[Placeholder]
+## Ingestion Pipeline
+1. `ingestion/ingest.py` parses downloaded transcript JSON files.
+2. Text is chunked into 500-800 token windows with a 15% overlap.
+3. Chunks are embedded using `sentence-transformers/all-MiniLM-L6-v2`.
+4. Upserts are idempotent based on `episode_url` to prevent duplicate vectors on repeated runs.
 
-## Flows
-- **Ingestion Pipeline:**
-  1. A script fetches the latest ~25 episodes from `https://www.lennysnewsletter.com/feed`.
-  2. HTML is stripped, and the metadata + text is saved locally in JSON files.
-  3. `ingestion/ingest.py` discovers these files, checks the database for idempotency against the `episode_url`, and skips existing records unless `--refresh` is passed.
-  4. Records are chunked, embedded in batches via `all-MiniLM-L6-v2`, and upserted into PostgreSQL using SQLAlchemy.
-
-## Acceptance criteria
-[Placeholder]
+## Complete Iframe CSP / Sanitization Security Model
+Artifacts generated by LLMs are untrusted input. We secure them via:
+1. **Server-Side Sanitization:** `app.agent.sanitize.py` uses `bleach` to strip `<script>`, `<iframe>`, `<object>`, inline event handlers (e.g. `onerror`), and `javascript:` URIs from HTML.
+2. **Database Segregation:** The DB stores both `raw_content` and `sanitized_content`. The API strictly only serves `sanitized_content`.
+3. **Sandboxed Frontend Iframe:** 
+   - The UI renders HTML artifacts via an `<iframe>` utilizing the `srcDoc` attribute.
+   - The iframe enforces `sandbox="allow-same-origin"` (explicitly omitting `allow-scripts`, making JS execution impossible).
+   - A `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline';">` tag is injected into the `srcDoc` header to lock down external network requests.
